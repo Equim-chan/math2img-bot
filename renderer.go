@@ -75,13 +75,8 @@ func Render(ctx context.Context, formula string) (image.Image, error) {
 	// wait
 	rErr := r.Wait()
 	tErr := t.Wait()
-	ctxErr := ctx.Err()
 
 	switch {
-	// possible timeout
-	case ctxErr != nil:
-		return nil, ctxErr
-
 	// because tex2svg doesn't really exit with non-zero value when an error occurs
 	case tStderr.Len() > 0:
 		return nil, errors.New(strings.TrimSpace(tStderr.String()))
