@@ -59,7 +59,7 @@ func standalone(msg *tgbotapi.Message) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	img, err := math2img.Render(ctx, msg.CommandArguments())
+	img, err := math2img.Render(ctx, formula)
 	if err != nil {
 		cerr := wrapError(ctx, err)
 		if cerr != err {
