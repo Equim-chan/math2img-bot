@@ -94,7 +94,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 
 	// standalone mode
 	msg := update.Message
-	if msg.IsCommand() {
+	if msg != nil && msg.IsCommand() {
 		// an empty OK response
 		w.WriteHeader(200)
 		standalone(msg)
