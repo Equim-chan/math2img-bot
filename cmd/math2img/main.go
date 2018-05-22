@@ -1,21 +1,15 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
-	"errors"
-	"image/jpeg"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 	"time"
 
-	math2img "ekyu.moe/tgbot/math2img"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
@@ -98,91 +92,21 @@ func index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// standalone mode
+	msg := update.Message
+	if msg.IsCommand() {
+		// an empty OK response
+		w.WriteHeader(200)
+		standalone(msg)
+		return
+	}
+
+	// inline mode
 	req := update.InlineQuery
 	if req == nil || req.Query == "" {
-		http.Error(w, http.StatusText(404), 404)
+		http.Error(w, http.StatusText(400), 400)
 		return
 	}
 
-	// begin here
-	ctx, cancel := context.WithTimeout(r.Context(), timeout)
-	defer cancel()
-
-	// render
-	img, err := math2img.Render(ctx, req.Query)
-	if err != nil {
-		stderr.Println("render:", err)
-		exposeError(ctx, req, err)
-		http.Error(w, http.StatusText(500), 500)
-		return
-	}
-	width, height := img.Bounds().Dx(), img.Bounds().Dy()
-
-	// prepare temp file
-	fn := filepath.Join(tmpDir, req.ID+".jpg")
-	f, err := os.Create(fn)
-	if err != nil {
-		stderr.Println("create temp file:", err)
-		exposeError(ctx, req, errors.New("Internal server error"))
-		http.Error(w, http.StatusText(500), 500)
-		return
-	}
-
-	// clean up setup
-	go func() {
-		<-ctx.Done()
-		f.Close()
-	}()
-	time.AfterFunc(90*time.Second, func() {
-		os.Remove(fn)
-	})
-
-	// save jpeg to the temp file
-	if err := jpeg.Encode(f, img, nil); err != nil {
-		stderr.Println("encode jpeg:", err)
-		exposeError(ctx, req, errors.New("Internal server error"))
-		http.Error(w, http.StatusText(500), 500)
-		return
-	}
-
-	// clean up
-	cancel()
-
-	// end with an empty response
-	w.WriteHeader(200)
-
-	// send
-	targetURL := baseURL + "/pop/" + url.PathEscape(req.ID+".jpg")
-	res := tgbotapi.NewInlineQueryResultPhotoWithThumb(req.ID, targetURL, targetURL+"?t=1")
-	res.Width = width
-	res.Height = height
-	ans := tgbotapi.InlineConfig{
-		InlineQueryID: req.ID,
-		Results:       []interface{}{res},
-	}
-	if _, err := bot.AnswerInlineQuery(ans); err != nil {
-		stderr.Println(err)
-	}
-}
-
-func exposeError(ctx context.Context, req *tgbotapi.InlineQuery, err error) {
-	if ctxErr := ctx.Err(); ctxErr != nil {
-		err = ctxErr
-	}
-
-	msg := err.Error()
-	switch err {
-	case context.DeadlineExceeded:
-		msg = "Render timeout exceeded (10s)"
-	case context.Canceled:
-		msg = "Render job has been canceled"
-	}
-
-	res := tgbotapi.NewInlineQueryResultArticle(req.ID, "Error", req.Query)
-	res.Description = msg
-	ans := tgbotapi.InlineConfig{
-		InlineQueryID: req.ID,
-		Results:       []interface{}{res},
-	}
-	bot.AnswerInlineQuery(ans)
+	inline(w, r, req)
 }

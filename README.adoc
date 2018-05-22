@@ -4,7 +4,7 @@ Equim <https://github.com/Equim-chan[@Equim-chan]>
 image:https://goreportcard.com/badge/github.com/Equim-chan/math2img-bot[Go Report Card, link=https://goreportcard.com/report/github.com/Equim-chan/math2img-bot]
 image:https://img.shields.io/github/license/Equim-chan/math2img-bot.svg[License, link=https://github.com/Equim-chan/math2img-bot/blob/master/LICENSE]
 
-https://t.me/Math2ImgBot[@Math2ImgBot] is a Telegram inline bot that renders math formula into image using MathJax and librsvg.
+https://t.me/Math2ImgBot[@Math2ImgBot] is a Telegram bot that renders math formula into image using MathJax and librsvg. It works in inline mode too.
 
 == Requirements
 * https://www.npmjs.com/package/mathjax-node-cli[mathjax-node-cli]
