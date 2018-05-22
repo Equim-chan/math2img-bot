@@ -1,0 +1,38 @@
+= math2img-bot
+Equim <https://github.com/Equim-chan[@Equim-chan]>
+
+image:https://goreportcard.com/badge/github.com/Equim-chan/math2img-bot[Go Report Card, link=https://goreportcard.com/report/github.com/Equim-chan/math2img-bot]
+image:https://img.shields.io/github/license/Equim-chan/math2img-bot.svg[License, link=https://github.com/Equim-chan/math2img-bot/blob/master/LICENSE]
+
+https://t.me/Math2ImgBot[@Math2ImgBot] is a Telegram inline bot that renders math formula into image using MathJax and librsvg.
+
+== Requirements
+* https://www.npmjs.com/package/mathjax-node-cli[mathjax-node-cli]
+* https://github.com/GNOME/librsvg[librsvg]
+
+== Configuration
+[source,shell]
+----
+$ go get -t ekyu.moe/tgbot/math2img
+----
+
+This bot works in webhook mode. Configurations can be passed to it with environment variables.
+
+== Environment Variables
+[cols=2*,options=header]
+|===
+|Name
+|Description
+
+|TGBOT_TOKEN
+|Telegram bot token.
+
+|TGBOT_BASE_URL
+|Base URL for webhook and resource access, must not ends with slash. Example: `https://example.com/api`
+
+|TGBOT_BIND
+|Address to bind. Example: `127.0.0.1:8080`
+|===
+
+== License
+https://github.com/Equim-chan/math2img-bot/blob/master/LICENSE[MIT]
