@@ -36,7 +36,7 @@ func init() {
 
 func Render(ctx context.Context, formula string) (image.Image, error) {
 	// prepare tex2svg
-	t := exec.CommandContext(ctx, tex2svg, formula)
+	t := exec.CommandContext(ctx, tex2svg, "--", formula)
 	tStderr := new(bytes.Buffer)
 	t.Stderr = tStderr
 	tOut, err := t.StdoutPipe()
