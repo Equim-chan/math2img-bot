@@ -88,25 +88,22 @@ func index(w http.ResponseWriter, r *http.Request) {
 	// fetch update
 	update := &tgbotapi.Update{}
 	if err := json.NewDecoder(r.Body).Decode(update); err != nil {
-		http.Error(w, http.StatusText(400), 400)
+		w.WriteHeader(400)
+		return
+	}
+	// an empty OK response
+	defer w.WriteHeader(200)
+
+	// inline mode
+	req := update.InlineQuery
+	if req != nil && req.Query != "" {
+		inline(r.Context(), req)
 		return
 	}
 
 	// standalone mode
 	msg := update.Message
 	if msg != nil && msg.IsCommand() {
-		// an empty OK response
-		w.WriteHeader(200)
 		standalone(msg)
-		return
 	}
-
-	// inline mode
-	req := update.InlineQuery
-	if req == nil || req.Query == "" {
-		http.Error(w, http.StatusText(400), 400)
-		return
-	}
-
-	inline(w, r, req)
 }

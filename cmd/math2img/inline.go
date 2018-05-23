@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"net/http"
 	"net/url"
 	"path/filepath"
 
@@ -27,15 +26,15 @@ func exposeErrorInline(err error, queryID, content string) {
 	sendInline(rep, queryID)
 }
 
-func inline(w http.ResponseWriter, r *http.Request, req *tgbotapi.InlineQuery) {
-	ctx, cancel := context.WithTimeout(r.Context(), timeout)
+func inline(ctx context.Context, req *tgbotapi.InlineQuery) {
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	// render
 	img, err := math2img.Render(ctx, req.Query)
 	if err != nil {
 		cerr := wrapError(ctx, err)
-		http.Error(w, http.StatusText(500), 500)
 		if cerr != err {
 			stderr.Println("render:", err)
 		}
@@ -48,16 +47,12 @@ func inline(w http.ResponseWriter, r *http.Request, req *tgbotapi.InlineQuery) {
 	tmp := filepath.Join(tmpDir, req.ID+".jpg")
 	if err := dumpJpeg(ctx, img, tmp); err != nil {
 		cerr := wrapError(ctx, errors.New("Internal server error"))
-		http.Error(w, http.StatusText(500), 500)
 		if cerr != err {
 			stderr.Println("dump jpeg:", err)
 		}
 		exposeErrorInline(cerr, req.ID, req.Query)
 		return
 	}
-
-	// end with an empty OK response
-	w.WriteHeader(200)
 
 	targetURL := baseURL + "/pop/" + url.PathEscape(req.ID+".jpg")
 	rep := tgbotapi.NewInlineQueryResultPhotoWithThumb(req.ID, targetURL, targetURL+"?t=1")
